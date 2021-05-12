@@ -1,0 +1,101 @@
+class Scim2::Filter::Parser
+
+token EQ NE GT GE LT LE CO SW EW PR AND OR NOT LPAREN RPAREN LBRACKET RBRACKET
+token NULL BOOLEAN NUMBER STRING ATTRNAME SCHEMA DOT SPACE
+
+rule
+  filter_chain
+    : filter
+    | logical_filter_chain
+
+  filter
+    : attribute_filter
+    | value_path_filter
+    | grouped_filter
+    | not_filter
+
+  attribute_filter
+    : attr_path SPACE PR
+        {
+          attr, _, op = val
+          result = handler.on_attribute_filter(attr[:path], nil, op: op, schema: attr[:schema], context: result)
+        }
+    | attr_path SPACE comp_op SPACE comp_value
+        {
+          attr, _, op, _, v = val
+          result = handler.on_attribute_filter(attr[:path], v, op: op, schema: attr[:schema], context: result)
+        }
+
+  logical_filter_chain
+    : filter_chain SPACE bool_op SPACE filter
+        {
+          filter1, _, op, _, filter2 = val
+          result = handler.on_logical_filter(filter1, filter2, op: op, context: result)
+        }
+
+  value_path_filter
+    : attr_path LBRACKET filter_chain RBRACKET
+      {
+        attr, _, filter, _ = val
+        result = handler.on_sub_filter(attr[:path], filter, schema: attr[:schema], context: result)
+      }
+
+  grouped_filter
+    : LPAREN filter_chain RPAREN
+      {
+        _, filter = val
+        result = handler.on_grouped_filter(filter, context: result)
+      }
+
+  not_filter
+    : NOT SPACE grouped_filter
+      {
+        _, _, filter = val
+        result = handler.on_not_filter(filter, context: result)
+      }
+
+  attr_path
+    : SCHEMA attr_path_elements
+        {
+          schema, path = val
+          result = { schema: schema, path: path }
+        }
+    | attr_path_elements
+        {
+          result = { path: val.last }
+        }
+
+  attr_path_elements
+    : attr_path_elements DOT ATTRNAME
+        {
+          result = [*result.first, val.last]
+        }
+    | ATTRNAME
+        {
+          result = [val.last]
+        }
+
+  bool_op
+    : AND
+    | OR
+
+  comp_op
+    : EQ
+    | NE
+    | GT
+    | GE
+    | LT
+    | LE
+    | CO
+    | SW
+    | EW
+
+  comp_value
+    : BOOLEAN
+    | NULL
+    | NUMBER
+    | STRING
+end
+
+---- inner
+include ParserWithHandler
