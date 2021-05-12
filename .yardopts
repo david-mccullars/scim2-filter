@@ -1,0 +1,15 @@
+--protected
+--no-private
+--exclude .tab.rb
+--exclude .rex.rb
+--embed-mixin ClassMethods
+--tag yard.signature:"YARD Tag Signature"
+--type-name-tag yard.tag:"YARD Tag"
+--type-name-tag yard.directive:"YARD Directive"
+--hide-tag yard.tag
+--hide-tag yard.directive
+--hide-tag yard.signature
+--markup-provider=redcarpet
+--markup=markdown
+-
+LICENSE
