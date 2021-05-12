@@ -1,0 +1,108 @@
+class Scim2::Filter::Parser
+
+token EQ NE GT GE LT LE CO SW EW PR AND OR NOT LPAREN RPAREN LBRACKET RBRACKET
+token NULL BOOLEAN NUMBER STRING ATTRNAME SCHEMA DOT
+
+rule
+  #
+  # We must separate OR and AND filter rules in order to ensure the order of operations
+  # is properly followed.  Specifically, the following two filters are the same:
+  #
+  #   w AND x OR y AND z
+  #   (w AND x) OR (y AND z)
+  #
+  # Separating the rules the parser will aggressively gobble up AND rules first, leaving
+  # OR rules for the very last as it bubbles back up the recursion stack
+  #
+  filter
+    : non_or_filter
+    | filter OR non_or_filter
+        {
+          filter1, op, filter2 = val
+          result = handler.on_logical_filter(filter1, filter2, op: op, context: result)
+        }
+
+  non_or_filter
+    : non_boolean_filter
+    | non_or_filter AND non_boolean_filter
+        {
+          filter1, op, filter2 = val
+          result = handler.on_logical_filter(filter1, filter2, op: op, context: result)
+        }
+
+  non_boolean_filter
+    : attribute_filter
+    | nested_filter
+    | grouped_filter
+    | not_filter
+
+  attribute_filter
+    : attr_path PR
+        {
+          attr, op = val
+          result = handler.on_attribute_filter(attr[:path], nil, op: op, schema: attr[:schema], context: result)
+        }
+    | attr_path comp_op comp_value
+        {
+          attr, op, v = val
+          result = handler.on_attribute_filter(attr[:path], v, op: op, schema: attr[:schema], context: result)
+        }
+
+  nested_filter
+    : attr_path LBRACKET filter RBRACKET
+      {
+        attr, _, filter, _ = val
+        result = handler.on_nested_filter(attr[:path], filter, schema: attr[:schema], context: result)
+      }
+
+  grouped_filter
+    : LPAREN filter RPAREN
+      {
+        result = val[1]
+      }
+
+  not_filter
+    : NOT grouped_filter
+      {
+        _, filter = val
+        result = handler.on_not_filter(filter, context: result)
+      }
+
+  attr_path
+    : SCHEMA attr_path_elements
+        {
+          schema, path = val
+          result = { schema: schema, path: path }
+        }
+    | attr_path_elements
+        {
+          result = { path: val.last }
+        }
+
+  attr_path_elements
+    : attr_path_elements DOT ATTRNAME
+        {
+          result = [*val.first, val.last]
+        }
+    | ATTRNAME
+        {
+          result = [val.last]
+        }
+
+  comp_op
+    : EQ
+    | NE
+    | GT
+    | GE
+    | LT
+    | LE
+    | CO
+    | SW
+    | EW
+
+  comp_value
+    : BOOLEAN
+    | NULL
+    | NUMBER
+    | STRING
+end
