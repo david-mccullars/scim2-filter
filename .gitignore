@@ -1,0 +1,15 @@
+log
+*.swp
+*.swo
+*.tmproj
+.DS_Store
+.bundle
+
+Gemfile.lock
+
+bin
+pkg
+doc
+.yardoc
+*.rex.rb
+*.tab.rb
