@@ -1,0 +1,14 @@
+log
+*.swp
+*.swo
+*.tmproj
+.DS_Store
+.bundle
+
+Gemfile.lock
+
+bin
+pkg
+html
+*.rex.rb
+*.tab.rb
