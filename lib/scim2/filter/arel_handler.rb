@@ -119,6 +119,7 @@ module Scim2
           raise ArgumentError, "Mapping for attribute #{attribute_path.join(',').inspect} is not a valid arel object"
         end
       end
+
     end
   end
 end
