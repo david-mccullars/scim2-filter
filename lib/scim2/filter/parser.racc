@@ -49,10 +49,18 @@ rule
         }
 
   nested_filter
-    : attr_path LBRACKET filter RBRACKET
+    : nested_filter_start filter RBRACKET
       {
-        attr, _, filter, _ = val
+        attr, filter, _ = val
         result = handler.on_nested_filter(attr[:path], filter, schema: attr[:schema], context: result)
+      }
+
+  nested_filter_start
+    : attr_path LBRACKET
+      {
+        attr, _ = val
+        handler.before_nested_filter(attr[:path], schema: attr[:schema], context: result) if handler.respond_to?(:before_nested_filter)
+        result = attr
       }
 
   grouped_filter

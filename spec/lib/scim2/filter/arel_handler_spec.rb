@@ -22,12 +22,28 @@ describe Scim2::Filter::ArelHandler do
         lastModified: table[:last_modified],
       },
       schemas:  table[:schemas],
-      emails:   {
-        value: table[:email],
-        type:  table[:email_type],
+      urls:   {
+        value: table[:url],
+        type:  table[:url_type],
       },
-      type:     table[:ignored],
-      value:    table[:ignored],
+      emails:   ->(path, op, value) {
+        # Demonstrates a custom implementation of handling emails
+        case path
+        when [:type]
+          table[:email_type]
+        when [:value]
+          table[:email]
+        end
+      },
+      ims:      ->(path, op, value) {
+        # Demonstrates a custom implementation of handling ims
+        case path
+        when [:primary]
+          table[:ims].not_eq(nil) if value
+        when [:value]
+          table[:ims]
+        end
+      },
       w:        table[:w],
       x:        table[:x],
       y:        table[:y],
@@ -117,30 +133,52 @@ describe Scim2::Filter::ArelHandler do
     )
   end
 
-  specify 'userType eq "Employee" and (emails.value co "example.com" or emails.value co "example.org")' do
+  specify 'userType eq "Employee" and (urls.value co "example.com" or urls.value co "example.org")' do
     expect(parsed_result).to produce_sql %(
-      "users"."type" = 'Employee' AND ("users"."email" LIKE '%example.com%' OR "users"."email" LIKE '%example.org%')
+      "users"."type" = 'Employee' AND ("users"."url" LIKE '%example.com%' OR "users"."url" LIKE '%example.org%')
     )
   end
 
-  specify 'userType ne "Employee" and not (emails.value co "example.com" or emails.value co "example.org")' do
+  specify 'userType ne "Employee" and not (urls.value co "example.com" or urls.value co "example.org")' do
     expect(parsed_result).to produce_sql %(
-      "users"."type" != 'Employee' AND NOT (("users"."email" LIKE '%example.com%' OR "users"."email" LIKE '%example.org%'))
+      "users"."type" != 'Employee' AND NOT (("users"."url" LIKE '%example.com%' OR "users"."url" LIKE '%example.org%'))
     )
   end
 
-  specify 'userType eq "Employee" and (emails.type eq "work")' do
+  specify 'userType eq "Employee" and (name.familyName eq "Mac")' do
     expect(parsed_result).to produce_sql %(
-      "users"."type" = 'Employee' AND "users"."email_type" = 'work'
+      "users"."type" = 'Employee' AND "users"."family_name" = 'Mac'
     )
   end
 
-  specify 'userType eq "Employee" and emails[type eq "work" and value co "@example.com"]' do
-    expect { parsed_result }.to raise_error(/Nested attributes are not currently supported/i)
+  specify 'userType eq "Employee" and emails[type eq "work" and value ew "@example.com"]' do
+    expect(parsed_result).to produce_sql %(
+      "users"."type" = 'Employee' AND "users"."email_type" = 'work' AND "users"."email" LIKE '%@example.com'
+    )
   end
 
-  specify 'emails[type eq "work" and value co "@example.com"] or ims[type eq "xmpp" and value co "@foo.com"]' do
-    expect { parsed_result }.to raise_error(/Nested attributes are not currently supported/i)
+  specify 'emails[type eq "work" or type eq "home"]' do
+    expect(parsed_result).to produce_sql %(
+      ("users"."email_type" = 'work' OR "users"."email_type" = 'home')
+    )
+  end
+
+  specify 'emails[type eq "work" and not(type eq "home")]' do
+    expect(parsed_result).to produce_sql %(
+      "users"."email_type" = 'work' AND NOT ("users"."email_type" = 'home')
+    )
+  end
+
+  specify 'ims[primary eq true and value eq "abc"]' do
+    expect(parsed_result).to produce_sql %(
+      "users"."ims" IS NOT NULL AND "users"."ims" = 'abc'
+    )
+  end
+
+  specify 'ims[primary eq false and value eq "abc"]' do
+    expect(parsed_result).to produce_sql %(
+      0 AND "users"."ims" = 'abc'
+    )
   end
 
   # Order of operations -- AND has higher priority than OR (also true in SQL)
@@ -158,8 +196,8 @@ describe Scim2::Filter::ArelHandler do
     end
     failure_message do |actual|
       <<~MESSAGE
-        expected #{actual.to_sql.strip}
-             got #{expected}
+        expected #{expected}
+             got #{actual.to_sql.strip}
       MESSAGE
     end
   end
