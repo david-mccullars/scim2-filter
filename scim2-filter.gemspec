@@ -21,6 +21,8 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'racc', '>= 1.5'
 
   s.add_development_dependency 'activerecord', '~> 6.1' # Used for testing arel handler but not otherwise required by the gem
+  s.add_development_dependency 'bundler'
+  s.add_development_dependency 'github-markup'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'redcarpet'
   s.add_development_dependency 'rexical', '>= 1.0'

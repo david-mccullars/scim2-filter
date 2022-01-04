@@ -31,8 +31,7 @@ Rake::Task[:build].enhance ['lexer:build', 'parser:build']
 Rake::Task[:clean].enhance ['lexer:clean', 'parser:clean']
 
 require 'yard'
-YARD::Rake::YardocTask.new do |t|
-end
+YARD::Rake::YardocTask.new
 
 require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new(:spec)

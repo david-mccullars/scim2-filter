@@ -4,6 +4,7 @@ log
 *.tmproj
 .DS_Store
 .bundle
+.rake_tasks
 
 Gemfile.lock
 
