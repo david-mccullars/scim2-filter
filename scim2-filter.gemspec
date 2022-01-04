@@ -33,4 +33,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'simplecov', '~> 0.17.0' # 0.18 not supported by code climate
   s.add_development_dependency 'sqlite3', '~> 1.4' # Used for testing arel handler but not otherwise required by the gem
   s.add_development_dependency 'yard'
+  s.metadata = {
+    'rubygems_mfa_required' => 'true',
+  }
 end
