@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'scim2-filter'
-  s.version = '0.2.1'
+  s.version = '1.1.0'
   s.summary = 'Parser for SCIM query filters'
   s.description = <<~DESCRIPTION
     RFC7644 SCIM (System for Cross-domain Identity Management) 2.0 filter parser.
