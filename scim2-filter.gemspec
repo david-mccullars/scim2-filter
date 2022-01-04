@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
 
   s.files = Dir["{lib}/**/*", 'README.md']
 
+  s.required_ruby_version = '>= 3.0.0'
   s.add_runtime_dependency 'racc', '>= 1.5'
 
   s.add_development_dependency 'activerecord', '~> 6.1' # Used for testing arel handler but not otherwise required by the gem
