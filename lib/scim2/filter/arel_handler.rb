@@ -87,7 +87,7 @@ module Scim2
 
       # Begins capturing nested filter conditions inside a SimpleHandler
       # @return nil
-      def before_nested_filter(*ignored)
+      def before_nested_filter(*_ignored)
         @nested_filter_handler = SimpleHandler.new
         nil
       end

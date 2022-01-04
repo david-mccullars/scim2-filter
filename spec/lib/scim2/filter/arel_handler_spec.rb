@@ -22,11 +22,11 @@ describe Scim2::Filter::ArelHandler do
         lastModified: table[:last_modified],
       },
       schemas:  table[:schemas],
-      urls:   {
+      urls:     {
         value: table[:url],
         type:  table[:url_type],
       },
-      emails:   ->(path, op, value) {
+      emails:   lambda { |path, _op, _value|
         # Demonstrates a custom implementation of handling emails
         case path
         when [:type]
@@ -35,7 +35,7 @@ describe Scim2::Filter::ArelHandler do
           table[:email]
         end
       },
-      ims:      ->(path, op, value) {
+      ims:      lambda { |path, _op, value|
         # Demonstrates a custom implementation of handling ims
         case path
         when [:primary]

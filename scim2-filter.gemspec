@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
 
   s.authors = ['David McCullars']
 
-  s.files = Dir["{lib}/**/*", 'README.md']
+  s.files = Dir['{lib}/**/*', 'README.md']
 
   s.required_ruby_version = '>= 3.0.0'
   s.add_runtime_dependency 'racc', '>= 1.5'
@@ -26,6 +26,8 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rexical', '>= 1.0'
   s.add_development_dependency 'rspec', '>= 3.0'
   s.add_development_dependency 'rubocop'
+  s.add_development_dependency 'rubocop-rake'
+  s.add_development_dependency 'rubocop-rspec'
   s.add_development_dependency 'sqlite3', '~> 1.4' # Used for testing arel handler but not otherwise required by the gem
   s.add_development_dependency 'yard'
 end
